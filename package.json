@@ -1,0 +1,28 @@
+{
+  "name": "jevdesk-support-router",
+  "version": "1.0.0",
+  "private": true,
+  "description": "jevdesk-support-router: a support ticket triage tool that uses TypeSafe AI's Jev evaluation model through Vercel AI Gateway.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "jev",
+    "typesafe-ai",
+    "ai-sdk",
+    "vercel-ai-gateway",
+    "triage"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ai": "^7.0.112",
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1"
+  }
+}

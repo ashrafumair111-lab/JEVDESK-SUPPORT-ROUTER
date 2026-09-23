@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>jevdesk-support-router</title>
+    <style>
+      /* --------------------------------------------------------------------
+         Theme tokens. Change these few values to restyle the whole app.
+         -------------------------------------------------------------------- */
+      :root {
+        --bg: #f5f6f8;
+        --card: #ffffff;
+        --text: #1f2430;
+        --muted: #6b7280;
+        --line: #e3e6ec;
+        --good: #16a34a;
+        --warn: #e0a022;
+        --bad: #dc2626;
+        --warn-bg: #fffbeb;
+        --warn-line: #fde68a;
+        --warn-text: #92400e;
+        --radius: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .wrap {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 40px 20px 72px;
+      }
+
+      header h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: -0.02em;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      /* --- Input area ---------------------------------------------------- */
+      label {
+        display: block;
+        margin: 28px 0 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 14px;
+        font: inherit;
+        font-size: 15px;
+        color: var(--text);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        resize: vertical;
+        outline: none;
+      }
+
+      textarea:focus {
+        border-color: #9aa3b2;
+        box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        font: inherit;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 10px 18px;
+        border-radius: 9px;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: var(--text);
+        color: #fff;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: #333a4a;
+      }
+
+      .btn-ghost {
+        background: transparent;
+        border-color: var(--line);
+        color: var(--muted);
+      }
+
+      .btn-ghost:hover:not(:disabled) {
+        background: #eceef2;
+      }
+
+      .status {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      /* --- Error box ----------------------------------------------------- */
+      .error {
+        display: none;
+        margin-top: 16px;
+        padding: 12px 14px;
+        font-size: 14px;
+        color: #991b1b;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+      }
+
+      .error.show {
+        display: block;
+      }
+
+      /* --- Results ------------------------------------------------------- */
+      #results {
+        display: none;
+        margin-top: 28px;
+      }
+
+      #results.show {
+        display: block;
+      }
+
+      .banner {
+        display: none;
+        margin-bottom: 16px;
+        padding: 11px 14px;
+        font-size: 14px;
+        border-radius: 10px;
+        border: 1px solid var(--warn-line);
+        background: var(--warn-bg);
+        color: var(--warn-text);
+      }
+
+      .banner.show {
+        display: block;
+      }
+
+      .banner.ok {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 18px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+      }
+
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+
+      .value {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .sub {
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      /* Thin confidence bar */
+      .bar {
+        height: 6px;
+        margin-top: 12px;
+        background: #eceef2;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .bar-fill {
+        width: 0;
+        height: 100%;
+        background: var(--good);
+        border-radius: 999px;
+        transition: width 0.25s ease;
+      }
+
+      /* Five urgency segments */
+      .segments {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      .seg {
+        flex: 1;
+        height: 8px;
+        background: #eceef2;
+        border-radius: 999px;
+      }
+
+      .seg.filled {
+        background: var(--good);
+      }
+
+      .seg.filled.mid {
+        background: var(--warn);
+      }
+
+      .seg.filled.high {
+        background: var(--bad);
+      }
+
+      .warn {
+        display: none;
+        margin-top: 12px;
+        padding: 5px 9px;
+        font-size: 12px;
+        color: var(--warn-text);
+        background: var(--warn-bg);
+        border: 1px solid var(--warn-line);
+        border-radius: 6px;
+      }
+
+      .warn.show {
+        display: inline-block;
+      }
+
+      .dist {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .meta {
+        margin-top: 26px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>jevdesk-support-router</h1>
+        <p>
+          Support ticket triage powered by Jev from TypeSafe AI, via Vercel AI
+          Gateway.
+        </p>
+      </header>
+
+      <!-- Step 1: paste the customer message. -->
+      <label for="message">Customer message</label>
+      <textarea
+        id="message"
+        placeholder="Paste a customer email, ticket or chat transcript here..."
+      ></textarea>
+
+      <div class="toolbar">
+        <button id="analyze" class="btn-primary" type="button">
+          Analyze with Jev
+        </button>
+        <button id="sample" class="btn-ghost" type="button">Load sample</button>
+        <span id="status" class="status"></span>
+      </div>
+
+      <div id="error" class="error"></div>
+
+      <!-- Step 2: the three answer cards. Hidden until the first analysis. -->
+      <section id="results">
+        <div id="banner" class="banner"></div>
+
+        <div class="grid">
+          <!-- Card 1: Jev "choice" question -->
+          <div class="card">
+            <h2>Department</h2>
+            <div id="dept-value" class="value">—</div>
+            <div id="dept-conf" class="sub">—</div>
+            <div class="bar"><div id="dept-bar" class="bar-fill"></div></div>
+            <div id="dept-dist" class="dist"></div>
+            <div id="dept-warn" class="warn"></div>
+          </div>
+
+          <!-- Card 2: Jev "score" question, displayed on a 1-5 scale -->
+          <div class="card">
+            <h2>Urgency</h2>
+            <div id="urg-value" class="value">—</div>
+            <div id="urg-conf" class="sub">—</div>
+            <div id="urg-bar" class="segments">
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+            </div>
+            <div id="urg-warn" class="warn"></div>
+          </div>
+
+          <!-- Card 3: Jev "boolean" question -->
+          <div class="card">
+            <h2>Refund requested</h2>
+            <div id="refund-value" class="value">—</div>
+            <div id="refund-conf" class="sub">—</div>
+            <div class="bar"><div id="refund-bar" class="bar-fill"></div></div>
+            <div id="refund-warn" class="warn"></div>
+          </div>
+        </div>
+
+        <p id="meta" class="meta"></p>
+      </section>
+    </div>
+
+    <script>
+      /* ====================================================================
+         jevdesk-support-router frontend
+         Plain JavaScript: read the textarea, POST it to /api/triage, then
+         paint the three cards from the JSON the server sends back.
+         ==================================================================== */
+      const el = (id) => document.getElementById(id);
+
+      // One place to reference every element we update.
+      const ui = {
+        button: el('analyze'),
+        sample: el('sample'),
+        message: el('message'),
+        status: el('status'),
+        error: el('error'),
+        results: el('results'),
+        banner: el('banner'),
+        meta: el('meta'),
+        dept: {
+          value: el('dept-value'),
+          conf: el('dept-conf'),
+          bar: el('dept-bar'),
+          dist: el('dept-dist'),
+          warn: el('dept-warn'),
+        },
+        urg: {
+          value: el('urg-value'),
+          conf: el('urg-conf'),
+          bar: el('urg-bar'),
+          warn: el('urg-warn'),
+        },
+        refund: {
+          value: el('refund-value'),
+          conf: el('refund-conf'),
+          bar: el('refund-bar'),
+          warn: el('refund-warn'),
+        },
+      };
+
+      const LOW_CONFIDENCE_TEXT =
+        '⚠️ Low confidence — needs human review';
+      const NO_CONFIDENCE_TEXT =
+        '⚠️ No confidence reported — needs human review';
+
+      /** 0.734 -> "confidence 73%". null -> "confidence not reported". */
+      function confidenceText(confidence) {
+        if (typeof confidence !== 'number') return 'confidence not reported';
+        return `confidence ${Math.round(confidence * 100)}%`;
+      }
+
+      /** Fill a thin bar and colour it green (confident) or amber (shaky). */
+      function setBar(barFill, confidence, threshold) {
+        if (typeof confidence !== 'number') {
+          barFill.style.width = '0%';
+          barFill.style.background = 'var(--muted)';
+          return;
+        }
+        barFill.style.width = `${Math.round(confidence * 100)}%`;
+        barFill.style.background =
+          confidence >= threshold ? 'var(--good)' : 'var(--warn)';
+      }
+
+      /**
+       * Show the "needs human review" chip whenever the confidence is missing
+       * or below the threshold the server sent us.
+       */
+      function setWarning(element, confidence, threshold) {
+        if (typeof confidence === 'number' && confidence >= threshold) {
+          element.textContent = '';
+          element.classList.remove('show');
+          return;
+        }
+        element.textContent =
+          typeof confidence === 'number'
+            ? LOW_CONFIDENCE_TEXT
+            : NO_CONFIDENCE_TEXT;
+        element.classList.add('show');
+      }
+
+      /** Render the full option distribution of a choice answer, if present. */
+      function renderDistribution(element, probabilities) {
+        element.textContent = '';
+        if (!probabilities) return;
+        const parts = Object.entries(probabilities)
+          .sort((a, b) => b[1] - a[1])
+          .map(([option, probability]) => `${option} ${Math.round(probability * 100)}%`);
+        element.textContent = `Distribution: ${parts.join(' · ')}`;
+      }
+
+      /** Light up the first `value` of the five urgency segments. */
+      function renderUrgencyBar(value) {
+        const segments = ui.urg.bar.children;
+        for (let i = 0; i < segments.length; i++) {
+          const level = i + 1;
+          const filled = level <= value;
+          segments[i].classList.toggle('filled', filled);
+          segments[i].classList.toggle('mid', filled && level === 3);
+          segments[i].classList.toggle('high', filled && level >= 4);
+        }
+      }
+
+      /** Paint every card from the payload returned by POST /api/triage. */
+      function render(payload) {
+        const t = payload.triage;
+        const threshold =
+          typeof payload.lowConfidenceThreshold === 'number'
+            ? payload.lowConfidenceThreshold
+            : 0.7; // fallback = 70%
+
+        // --- Department (choice): the option Jev picked + its probability.
+        ui.dept.value.textContent = t.department.answer;
+        ui.dept.conf.textContent = confidenceText(t.department.confidence);
+        setBar(ui.dept.bar, t.department.confidence, threshold);
+        renderDistribution(ui.dept.dist, t.department.probabilities);
+        setWarning(ui.dept.warn, t.department.confidence, threshold);
+
+        // --- Urgency (score): the 1-5 reading plus the exact fractional score.
+        ui.urg.value.textContent = `${t.urgency.value} / ${t.urgency.max}`;
+        ui.urg.conf.textContent =
+          `exact score ${t.urgency.exact} · ` +
+          confidenceText(t.urgency.confidence);
+        renderUrgencyBar(t.urgency.value);
+        setWarning(ui.urg.warn, t.urgency.confidence, threshold);
+
+        // --- Refund requested (boolean): P(true) decides yes/no, and the
+        // confidence is the probability of the answer we are showing.
+        ui.refund.value.textContent = t.refundRequested.requested
+          ? 'Yes'
+          : 'No';
+        ui.refund.conf.textContent =
+          `${confidenceText(t.refundRequested.confidence)} · ` +
+          `P(true) = ${t.refundRequested.probability.toFixed(2)}`;
+        setBar(ui.refund.bar, t.refundRequested.confidence, threshold);
+        setWarning(ui.refund.warn, t.refundRequested.confidence, threshold);
+
+        // --- Overall verdict banner.
+        ui.banner.textContent = payload.needsHumanReview
+          ? '⚠️ At least one answer is below the confidence threshold — review this ticket before acting on it.'
+          : 'All three answers cleared the confidence threshold.';
+        ui.banner.classList.toggle('ok', !payload.needsHumanReview);
+        ui.banner.classList.add('show');
+
+        // --- Footer with the model and token usage.
+        const usage = payload.meta.usage ?? {};
+        ui.meta.textContent =
+          `Model ${payload.meta.modelId} · ${payload.meta.durationMs} ms · ` +
+          `tokens ${usage.inputTokens ?? '?'} in / ${usage.outputTokens ?? '?'} out`;
+
+        ui.results.classList.add('show');
+      }
+
+      // --- Loading and error helpers ---------------------------------------
+      function setLoading(isLoading) {
+        ui.button.disabled = isLoading;
+        ui.sample.disabled = isLoading;
+        ui.button.textContent = isLoading ? 'Analyzing…' : 'Analyze with Jev';
+        ui.status.textContent = isLoading
+          ? 'Jev is evaluating the ticket…'
+          : '';
+      }
+
+      function showError(text) {
+        ui.error.textContent = text;
+        ui.error.classList.add('show');
+      }
+
+      function clearError() {
+        ui.error.textContent = '';
+        ui.error.classList.remove('show');
+      }
+
+      /** Turn an unsuccessful API response into one readable sentence. */
+      function describeApiError(response, body) {
+        const error = body?.error;
+        if (!error) return `The server replied with HTTP ${response.status}.`;
+        return error.hint ? `${error.message} ${error.hint}` : error.message;
+      }
+
+      // --- The one job of this page ----------------------------------------
+      async function analyze() {
+        const message = ui.message.value.trim();
+        if (!message) {
+          showError('Paste a customer message first.');
+          return;
+        }
+
+        clearError();
+        setLoading(true);
+
+        try {
+          const response = await fetch('/api/triage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+          });
+
+          // The route always answers with JSON, but guard against surprises.
+          const body = await response.json().catch(() => null);
+
+          if (!response.ok || !body?.ok) {
+            showError(describeApiError(response, body));
+            return;
+          }
+
+          render(body);
+        } catch (networkError) {
+          showError(
+            'Could not reach the jevdesk-support-router server. Is "npm start" ' +
+              `running? (${networkError.message})`,
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // --- A realistic ticket to try the app with --------------------------
+      const SAMPLE_MESSAGE = `Hi, I'm on the Pro plan and for the third night in a row your nightly sync has failed with a 502 from your API. Nobody on my team can generate invoices right now and we launch on Monday. I've already reopened this case twice. Honestly, at this point I'd like this month refunded, or we'll have to look at alternatives. Please escalate to someone who can actually fix this.`;
+
+      // --- Wire up the page -------------------------------------------------
+      ui.button.addEventListener('click', analyze);
+
+      ui.sample.addEventListener('click', () => {
+        ui.message.value = SAMPLE_MESSAGE;
+        ui.message.focus();
+      });
+
+      // Ctrl/Cmd + Enter runs the analysis without reaching for the mouse.
+      ui.message.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+          analyze();
+        }
+      });
+    </script>
+  </body>
+</html>

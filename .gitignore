@@ -1,0 +1,20 @@
+# --- Secrets ---------------------------------------------------------------
+# The real .env holds your Vercel AI Gateway key. NEVER commit it.
+.env
+.env.local
+.env.*.local
+
+# --- Dependencies ----------------------------------------------------------
+node_modules/
+
+# --- Logs and OS junk ------------------------------------------------------
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+
+# --- Editors ---------------------------------------------------------------
+.vscode/
+.idea/
